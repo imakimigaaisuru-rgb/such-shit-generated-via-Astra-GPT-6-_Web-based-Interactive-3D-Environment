@@ -1,0 +1,78 @@
+import * as T from 'three';
+import {mergeGeometries} from './utils/BufferGeometryUtils.js';
+
+// All additions are world-space metre geometry. The occupied house plan stays intact.
+export function landHeight(x,z){
+ const domestic=(x>-1.8&&x<10.5&&z>-8&&z<2.5)||(Math.abs(x+5.7)<1.4&&z<8.5&&z>1.5);
+ if(domestic)return .3;
+ const edge=Math.max(0,Math.abs(x)-11,(-z-9)*.75,z-14);
+ return .3+Math.min(.28,edge*.08)*Math.sin(x*1.4+z*.7)+Math.pow(edge,.95)*(.55+.3*Math.sin(x*.18+z*.14)**2);
+}
+export function detailWorld(model){
+ const {world,house,roof,envelope,frame,ground}=model;
+ let seed=24817;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ const materials=new Map();world.traverse(o=>{if(o.material&&!Array.isArray(o.material))materials.set(o.material.name,o.material);});
+ const wood=materials.get('Dark_cedar'),stone=materials.get('River_stones'),soil=materials.get('Moss_and_ground'),thatch=materials.get('Roof_finish_provisional');
+ const mat=(name,color,roughness=.88)=>{const m=new T.MeshStandardMaterial({color,roughness});m.name=name;materials.set(name,m);return m;};
+ const bark=mat('Tree_bark',0x776753),needles=mat('Needle_cards',0xced4be,.98),reed=mat('Thatch_ends',0x897b63),moss=mat('Living_moss',0x566342),leaves=mat('Maple_leaves',0xa13c25,.8);
+ needles.side=T.DoubleSide;needles.alphaTest=.36;needles.forceSinglePass=true;
+ const newLandscape=new T.Group();newLandscape.name='Detailed_river_valley';world.add(newLandscape);
+ const obsolete=[];world.traverse(o=>{if(['North_bank','South_bank','Cedar_trunks','Cedar_canopy','Dry_access_path','Front_approach','Riverbank_rocks','Stone_plinth_front','Stone_plinth_back','Stone_plinth_side','Boat_hull','Boat_floor'].includes(o.name)||o.name==='Roof_surface_reed_rhythm')obsolete.push(o);});obsolete.forEach(o=>o.removeFromParent());
+ const temp=new T.Object3D();const baseBox=new T.BoxGeometry(1,1,1);
+ function mesh(name,geo,m,parent=newLandscape){const o=new T.Mesh(geo,m);o.name=name;o.receiveShadow=true;o.castShadow=true;parent.add(o);return o;}
+ const batch=(name,geo,m,placements,parent=newLandscape)=>{const o=new T.InstancedMesh(geo,m,placements.length);o.name=name;placements.forEach((p,i)=>{temp.position.set(...p.p);temp.scale.set(...(p.s||[1,1,1]));temp.rotation.set(...(p.r||[0,0,0]));temp.updateMatrix();o.setMatrixAt(i,temp.matrix);if(p.c)o.setColorAt(i,new T.Color(p.c));});o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
+ function lineGeo(a,b,r1,r2,segments=7){const av=new T.Vector3(...a),bv=new T.Vector3(...b),g=new T.CylinderGeometry(r2,r1,av.distanceTo(bv),segments,1);const m=new T.Matrix4().compose(av.clone().add(bv).multiplyScalar(.5),new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),bv.sub(av).normalize()),new T.Vector3(1,1,1));g.applyMatrix4(m);return g;}
+ // Undulating continuous banks, with a protected level domestic pad and dry approach.
+ for(const north of [true,false]){const pos=[],uv=[],ix=[],nx=140,nz=70;for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const x=-55+i/nx*110;const bank=north?3.4:6.6;const z=north?-50+j/nz*53.4:6.6+j/nz*38.4;let h=landHeight(x,z);const near=north?3.4-z:z-6.6;h-=.26*Math.exp(-near*1.7);if(near<.3)h+=.13*Math.sin(x*1.7);pos.push(x,h,z);uv.push(x*.18,z*.18);if(j<nz&&i<nx){const a=j*(nx+1)+i,b=a+nx+1;ix.push(a,b,a+1,b,b+1,a+1);}}const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();mesh(north?'Northern_wooded_slope':'Southern_wooded_bank',g,soil);}
+ // Natural stone paths have individual, uneven outlines but a level walk surface.
+ const pebbleG=new T.IcosahedronGeometry(1,1);const vp=pebbleG.attributes.position;for(let i=0;i<vp.count;i++){const x=vp.getX(i),y=vp.getY(i),z=vp.getZ(i),f=1+.12*Math.sin(x*12+y*7+z*9);vp.setXYZ(i,x*f,y*f,z*f);}pebbleG.computeVertexNormals();
+ const path=[];for(let i=0;i<45;i++){const x=-6.3+i*.34,z=1.3+.16*Math.sin(i*.7);path.push({p:[x,.32,z],s:[.21,.065,.48],r:[0,rnd()*.4,0]});}for(let i=0;i<42;i++){path.push({p:[8.7+.15*Math.sin(i),.32,-10+i*.34],s:[.52,.07,.21],r:[0,rnd()*.3,0]});}batch('Hand_laid_stepping_stones',pebbleG,stone,path);
+ const rocks=[];for(let i=0;i<480;i++){const x=rnd()*72-36,z=(i%2?3.35:6.67)+(rnd()-.5)*.9;const s=.15+rnd()*.52;rocks.push({p:[x,.07,z],s:[s*(1+rnd()),s*.75,s*(.7+rnd())],r:[rnd()*.5,rnd()*6.28,rnd()*.4],c:new T.Color().setHSL(.13+rnd()*.05,.05+rnd()*.15,.21+rnd()*.12)});}for(let i=0;i<45;i++){let x=rnd()*28-14,z=3.6+rnd()*2.8;if(Math.abs(x+5.7)<1)x-=2;const s=.1+rnd()*.23;rocks.push({p:[x,-.015,z],s:[s*1.5,s,s],r:[rnd(),rnd(),rnd()]});}batch('Wet_river_rocks',pebbleG,stone,rocks);
+ const foundation=[];for(let row=0;row<2;row++){for(let i=0;i<14;i++)for(const z of [-3.035,3.035])foundation.push({p:[-3.75+i*.565+(row%2)*.05,.41+row*.24,z],s:[.31,.17,.17],r:[0,rnd()*.12,0]});for(let i=0;i<10;i++)for(const x of [-4.03,4.03])foundation.push({p:[x,.41+row*.24,-2.68+i*.59],s:[.17,.17,.33],r:[0,rnd()*.1,0]});}batch('Individual_plinth_stones',pebbleG,stone,foundation,frame);
+ // Roof detail: layered thatch bundles, uneven reed fringe, ridge ropes and tied poles.
+ const ends=[];for(const s of [-1,1])for(let i=0;i<950;i++){const x=-4.74+rnd()*9.48,z=s*(3.75+rnd()*.08),y=3.36+rnd()*.16;ends.push({p:[x,y,z],s:[.009,.14+rnd()*.1,.01],r:[s*.61,0,(rnd()-.5)*.1]});}batch('Thatch_fringe_finish',baseBox,reed,ends,roof);
+ const roofLines=[];for(let x=-4.55;x<4.6;x+=.9){roofLines.push(lineGeo([x,6.30,-.16],[x,6.30,.16],.055,.05));for(const s of [-1,1])roofLines.push(lineGeo([x,6.29,0],[x,6.0,s*.4],.032,.032));}roofLines.push(lineGeo([-4.85,6.29,-.16],[4.85,6.29,-.16],.065,.065),lineGeo([-4.85,6.29,.16],[4.85,6.29,.16],.065,.065));mesh('Bound_ridge_poles_finish',mergeGeometries(roofLines),wood,roof);
+ // Joinery pegs, weatherboard skirting and solid wooden shutters.
+ const pegs=[];for(const x of [-3.9,-1.3,1.3,3.9])for(const z of [-2.9,0,2.9])for(const y of [1.24,3.58])pegs.push({p:[x,y,z+.104],s:[.032,.032,.012],r:[Math.PI/2,0,0]});batch('Timber_joinery_pegs',new T.CylinderGeometry(1,1,1,8),wood,pegs,frame);
+ for(const z of [-2.92,2.92]){const ps=[];for(let i=0;i<50;i++){const x=-3.91+i*.16;if(z>0&&Math.abs(x)<.74)continue;ps.push({p:[x,1.31,z+(z>0?.09:-.09)],s:[.145,.48,.035]});}batch('Weatherboard_skirt',baseBox,wood,ps,envelope);}
+ const shutter=[];for(const x of [-3.64,-.82,.82,3.64])for(let i=0;i<9;i++)shutter.push({p:[x,1.68+i*.15,3.04],s:[.31,.06,.055]});batch('Open_shutter_slats',baseBox,wood,shutter,envelope);
+ const furniture=[];for(const x of [-2.9,-1.8])furniture.push({p:[x,1.57,3.62],s:[.12,.55,.12]});furniture.push({p:[-2.35,1.87,3.62],s:[1.55,.12,.52]});mesh('Porch_bench',mergeGeometries(furniture.map(p=>{const g=baseBox.clone();g.scale(...p.s);g.translate(...p.p);return g;})),wood,envelope);
+ const potM=mat('Aged_ceramic',0x594a3b,.58);const profile=[new T.Vector2(.11,0),new T.Vector2(.2,.06),new T.Vector2(.26,.27),new T.Vector2(.19,.44),new T.Vector2(.14,.47)];const pot=mesh('Porch_water_jar',new T.LatheGeometry(profile,24),potM,envelope);pot.position.set(3.2,1.05,3.6);
+ // Replace the box-like hull with tapered curved ribs, planks and a visible mooring rope.
+ const boat=world.getObjectByName('Moored_boat');if(boat){const segments=[];for(let i=0;i<9;i++){const h=.06+i*.047,width=.35+i*.038;const ps=[];for(let j=0;j<=28;j++){const t=j/28,z=-1.45+t*3.0,x=width*Math.sin(Math.PI*t)**.43;ps.push(new T.Vector3(x,h,z));}for(const sign of [-1,1]){const points=ps.map(p=>new T.Vector3(p.x*sign,p.y,p.z));segments.push(new T.TubeGeometry(new T.CatmullRomCurve3(points),32,.026,5,false));}}mesh('Curved_boat_strakes',mergeGeometries(segments),wood,boat);const fl=mesh('Boat_floorboards',new T.BoxGeometry(.64,.06,2.4),wood,boat);fl.position.set(0,.12,-.05);for(let j=0;j<7;j++){const z=-1.15+j*.38;const p=[];for(let i=0;i<=12;i++){const t=i/12*Math.PI;p.push(new T.Vector3(-.61*Math.cos(t),.48-.32*Math.sin(t),z));}mesh('Hull_rib',new T.TubeGeometry(new T.CatmullRomCurve3(p),12,.025,5,false),wood,boat);}const rp=[new T.Vector3(5.42,.45,4.48),new T.Vector3(5.13,.38,3.91),new T.Vector3(5.0,.68,3.2)];mesh('Mooring_rope',new T.TubeGeometry(new T.CatmullRomCurve3(rp),24,.018,5,false),reed);const post=mesh('Mooring_stake',new T.CylinderGeometry(.05,.06,.78,9),wood);post.position.set(5,.47,3.2);}
+ // Dense cedar forest: solid branching trunks + crossed, alpha-tested needle clusters.
+ const trunks=[],cards=[];const treeSpots=[];for(let i=0;i<225;i++){let x=rnd()*89-44.5,z=rnd()*67-42;if((x>-11&&x<13&&z>-11&&z<15)||Math.abs(z-5)<3.1){z=-13-rnd()*27;}treeSpots.push([x,z,4.8+rnd()*8.5]);}
+ treeSpots.forEach(([x,z,h],idx)=>{const gy=landHeight(x,z),bend=(rnd()-.5)*.7;trunks.push(lineGeo([x,gy,z],[x+bend,gy+h,z+.15],.16+h*.012,.025,7));for(let j=0;j<7;j++){const yy=gy+h*(.27+j*.09),radius=h*.21*(1-j*.1);for(let k=0;k<4;k++){const a=k*Math.PI/2+j*.87+idx*.8,ex=x+Math.cos(a)*radius,ez=z+Math.sin(a)*radius;trunks.push(lineGeo([x,yy,z],[ex,yy+.14,ez],.045,.012,5));for(let c=0;c<2;c++)cards.push({p:[ex-Math.cos(a)*radius*.27,yy+.18,ez-Math.sin(a)*radius*.27],s:[radius*1.85,radius*.94,1],r:[-.45+c*1.2,a+(c?1.2:0),.2*Math.sin(idx)]});}}cards.push({p:[x+bend,gy+h-.6,z],s:[1.15,1.6,1],r:[0,idx,0]});});
+ mesh('Branching_cedar_trunks',mergeGeometries(trunks),bark);const forest=batch('Cedar_needle_clusters',new T.PlaneGeometry(1,1),needles,cards);forest.castShadow=false;
+ // Near-bank ferns and grass blades are geometry, rooted in the soil.
+ const fernGeo=[];for(let j=0;j<7;j++){const a=j*6.28/7;for(let i=1;i<8;i++){const t=i/8,r=t*.38,y=.12+Math.sin(t*Math.PI)*.16;for(const sign of [-1,1]){const g=new T.PlaneGeometry(.13*(1-t)+.035,.035);g.rotateX(-Math.PI/2);g.rotateY(a+sign*.65);g.translate(Math.cos(a)*r,y,Math.sin(a)*r);fernGeo.push(g);}}}const ferns=[];for(let i=0;i<550;i++){let x=rnd()*40-20,z=(i%2?2.32:7.8)+(rnd()-.5)*2.3;if(Math.abs(x+5.7)<1.5||Math.abs(x-8.7)<1)continue;const s=.65+rnd()*1.4;ferns.push({p:[x,landHeight(x,z),z],s:[s,s,s],r:[0,rnd()*6.28,0]});}const fm=mat('Fern_foliage',0x546447);fm.side=T.DoubleSide;batch('Riverside_ferns',mergeGeometries(fernGeo),fm,ferns);
+ // Autumn maples frame the creek with branching crowns and individual lobed leaves.
+ const leafShape=new T.Shape();const lp=[[0,.15],[.026,.064],[.104,.096],[.067,.025],[.14,-.008],[.064,-.04],[.074,-.113],[.018,-.08],[0,-.15],[-.018,-.08],[-.074,-.113],[-.064,-.04],[-.14,-.008],[-.067,.025],[-.104,.096],[-.026,.064]];lp.forEach(([x,y],i)=>i?leafShape.lineTo(x,y):leafShape.moveTo(x,y));leafShape.closePath();const leafG=new T.ShapeGeometry(leafShape);leaves.side=T.DoubleSide;
+ const mapleTrunks=[],mapleLeaves=[];for(const [x,z,h] of [[-7.7,10.3,7.3],[-9.2,-3.8,5.3],[8.8,-8.7,6.6]]){const gy=landHeight(x,z);mapleTrunks.push(lineGeo([x,gy,z],[x+.55,gy+h*.84,z],.22,.09,10));for(let j=0;j<12;j++){const a=j*2.399,yy=gy+h*(.44+(j%4)*.13),r=1.3+(j%3)*.6,ex=x+Math.cos(a)*r,ez=z+Math.sin(a)*r;mapleTrunks.push(lineGeo([x+.3,yy-.5,z],[ex,yy+.3,ez],.085,.018,8));for(let k=0;k<75;k++){const xx=ex+(rnd()-.5)*2.0,zz=ez+(rnd()-.5)*1.7,sy=yy+.3+(rnd()-.5)*.6,s=.5+rnd()*.75;mapleLeaves.push({p:[xx,sy,zz],s:[s,s,s],r:[rnd()*2.3,rnd()*6.28,rnd()*6.28],c:new T.Color().setHSL(.005+rnd()*.075,.5+rnd()*.25,.2+rnd()*.14)});}}}mesh('Maple_branches',mergeGeometries(mapleTrunks),bark);batch('Crimson_maple_leaves',leafG,leaves,mapleLeaves);
+ // Stone lanterns at low light, recalling the reference rather than a temple complex.
+ const lanterns=new T.Group();lanterns.name='Stone_lanterns';world.add(lanterns);const lampMat=materials.get('Lantern_paper');const lampPositions=[[-7.4,2.8],[-7.4,7.4],[8,1.2],[1.3,1.4],[-10,-1.5]];
+ lampPositions.forEach(([x,z])=>{const y=landHeight(x,z);const shapes=[{g:new T.BoxGeometry(.7,.13,.7),h:.065},{g:new T.CylinderGeometry(.14,.22,.46,12),h:.36},{g:new T.BoxGeometry(.45,.09,.45),h:.61},{g:new T.BoxGeometry(.34,.42,.34),h:.865},{g:new T.ConeGeometry(.46,.25,4),h:1.21},{g:new T.SphereGeometry(.065,12,8),h:1.39}];shapes.forEach((s,i)=>{const o=mesh('Stone_lantern_'+i,s.g,i===3?lampMat:stone,lanterns);o.position.set(x,y+s.h,z);});for(const dx of [-.2,.2])for(const dz of [-.2,.2]){const o=mesh('Lantern_corner',new T.BoxGeometry(.055,.49,.055),stone,lanterns);o.position.set(x+dx,y+.86,z+dz);}});
+ world.updateMatrixWorld(true);
+ return {group:newLandscape,materials,forest,lampPositions,roofFinish:roof,landHeight};
+}
+
+export async function applyPhotographicMaterials(model,details,loader){
+ const [atlas,foliage]=await Promise.all([loader.loadAsync('assets/surface-atlas.png'),loader.loadAsync('assets/cedar-foliage.png')]);
+ atlas.colorSpace=T.SRGBColorSpace;atlas.anisotropy=8;foliage.colorSpace=T.SRGBColorSpace;foliage.anisotropy=4;
+ const tiles={wood:[0,.5],thatch:[.5,.5],stone:[0,0],ground:[.5,0]};
+ const cached=new Map();
+ function tile(kind){if(cached.has(kind))return cached.get(kind);const t=atlas.clone();t.name='PBR_'+kind;t.offset.set(tiles[kind][0]+.002,tiles[kind][1]+.002);t.repeat.set(.496,.496);t.needsUpdate=true;cached.set(kind,t);return t;}
+ const woodNames=['Dark_cedar','Cedar_endgrain','Cedar_floorboards','Tree_bark','Weathered_wood','Muted_vermilion'];
+ details.materials.forEach((m,name)=>{let kind=null;if(woodNames.includes(name))kind='wood';if(['Foundation_stone_cladding','River_stones'].includes(name))kind='stone';if(name==='Moss_and_ground')kind='ground';if(['Roof_finish_provisional','Thatch_ends'].includes(name))kind='thatch';if(!kind)return;m.map=tile(kind);m.bumpMap=m.map;m.bumpScale=kind==='thatch'?.07:kind==='stone'?.09:.018;m.roughness=kind==='stone'?.59:.91;m.color.set(name==='Muted_vermilion'?0xc36650:kind==='wood'?0xb4a696:kind==='thatch'?0xada79e:0xb5bab1);m.needsUpdate=true;});
+ const nm=details.materials.get('Needle_cards');nm.map=foliage;nm.needsUpdate=true;
+ // Reproject UVs to metres with per-face normalised tiles. atlas.repeat then selects one quadrant.
+ const unique=new Set();model.world.traverse(o=>{if(!o.isMesh||!o.material?.map||o.material.name==='Needle_cards'||unique.has(o.geometry))return;unique.add(o.geometry);const g=o.geometry,uv=g.attributes.uv,pos=g.attributes.position;if(!uv)return;if(g.type==='ExtrudeGeometry'||g.type==='BufferGeometry'){g.computeBoundingBox();const b=g.boundingBox,s=b.getSize(new T.Vector3());for(let i=0;i<uv.count;i++){if(o.material.name==='Roof_finish_provisional'){uv.setXY(i,(pos.getX(i)-b.min.x)/Math.max(s.x,.001),(pos.getY(i)-b.min.y)/Math.max(s.y,.001));}else{uv.setXY(i,((uv.getX(i)%1)+1)%1,((uv.getY(i)%1)+1)%1);}}uv.needsUpdate=true;}});
+ return {atlas,foliage};
+}
+
+// Merge static draw calls only in the viewer. Editable downloads keep individual parts.
+export function optimiseForRealtime(root){
+ for(const child of [...root.children])if(!child.isMesh)optimiseForRealtime(child);
+ const buckets=new Map();for(const o of root.children){if(!o.isMesh||o.isInstancedMesh||Array.isArray(o.material))continue;const key=o.material.uuid+':'+o.castShadow+':'+(/finish|rhythm/.test(o.name)?'finish':'frame');if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(o);}
+ for(const parts of buckets.values()){if(parts.length<3)continue;const geometries=parts.map(o=>{o.updateMatrix();const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrix);return g;});const merged=mergeGeometries(geometries);if(!merged)continue;const o=new T.Mesh(merged,parts[0].material);o.name=/finish|rhythm/.test(parts[0].name)?'Merged_finish':'Merged_'+parts[0].material.name;o.castShadow=parts[0].castShadow;o.receiveShadow=true;root.add(o);parts.forEach(p=>p.removeFromParent());}
+}
