@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f2eee5" />
+  <meta name="description" content="JC — 從 2024 到 2026，一張由外到內的互動人物地圖。" />
+  <title>JC — a map of how I know you</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="回到首頁"><span class="brand-dot"></span><span>JC / portrait map</span></a>
+    <nav class="desktop-nav" aria-label="主要導覽"><a href="#layers">向度</a><a href="#timeline">時間線</a><a href="#patterns">模式</a></nav>
+    <button id="menuBtn" class="menu-btn" aria-expanded="false" aria-controls="mobileNav">Menu</button>
+  </header>
+  <div id="mobileNav" class="mobile-nav" hidden><a href="#layers">向度</a><a href="#timeline">時間線</a><a href="#patterns">模式</a></div>
+
+  <main id="top">
+    <section class="hero section-shell">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">SINCE 2024.08.28</p>
+        <h1>我認識的你，<br><span>不是一張履歷。</span></h1>
+        <p class="hero-lead">比較像一張會持續長大的地圖：日文業務、會議口譯、LCD、心理學、AI、設計、程式、旅行、舞蹈，還有那些「我只是想問一下」最後挖到地心的問題。</p>
+        <div class="hero-actions"><a class="pill primary" href="#layers">開始看地圖</a><button class="pill ghost" id="randomThreadBtn">抽一條腦洞支線</button></div>
+        <p id="randomThread" class="random-thread" aria-live="polite"></p>
+      </div>
+      <div class="hero-visual reveal delay-1" aria-label="認識時間與關鍵特質摘要">
+        <div class="big-orbit">
+          <div class="orbit-ring ring-a"></div><div class="orbit-ring ring-b"></div>
+          <div class="orbit-core"><strong>2+</strong><span>years</span></div>
+          <span class="orbit-tag tag-1">precision</span><span class="orbit-tag tag-2">curiosity</span><span class="orbit-tag tag-3">language</span><span class="orbit-tag tag-4">systems</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="intro-strip"><div class="section-shell intro-grid"><div class="intro-number">07</div><div><p class="eyebrow">THE LAYERS</p><h2>由外到內，七個向度。</h2></div><p>不是把資訊平鋪成百科，而是從「別人先看見的你」一路走到「你其實怎麼運作」。</p></div></section>
+
+    <section id="layers" class="section-shell layers-section">
+      <div class="section-heading reveal"><div><p class="eyebrow">01 — 07</p><h2>人物向度</h2></div><div class="filter-wrap" role="tablist" aria-label="向度篩選"><button class="filter-btn active" data-filter="all" role="tab">全部</button><button class="filter-btn" data-filter="work" role="tab">工作</button><button class="filter-btn" data-filter="mind" role="tab">思考</button><button class="filter-btn" data-filter="life" role="tab">生活</button></div></div>
+      <div class="layer-grid">
+        <article class="layer-card tall reveal" data-category="work" tabindex="0">
+          <div class="card-index">01</div><div class="card-icon circle">語</div><p class="card-kicker">OUTER LAYER</p><h3>語言與溝通</h3>
+          <p>日文業務、會議口譯、商務郵件。你對「意思有沒有翻到」不滿足，還會追問語氣、責任邊界、暗示程度與日本客戶實際會怎麼讀。</p>
+          <button class="card-expand" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>JLPT N1、BJT J2、J.TEST 699。</li><li>特別在意正式文件的自然度、禮貌與措辭精準度。</li><li>會議紀錄偏好抓主張、條件、承諾、保留事項，而非逐字抄錄。</li><li>常見語感題：中で／中旬、見解／検討、責任範圍與模糊表達。</li></ul></div>
+        </article>
+
+        <article class="layer-card wide navy reveal delay-1" data-category="work" tabindex="0">
+          <div class="card-index">02</div><p class="card-kicker">PROFESSIONAL EVOLUTION</p><h3>從工業電腦，到 LCD / TAM</h3>
+          <p>你不是把工作理解成「賣東西」，而是越來越往技術溝通、專案協調、需求翻譯、風險管理靠攏。</p>
+          <div class="mini-flow" aria-label="職涯發展流程"><span>Industrial PC</span><i>→</i><span>PM / QA / FAE</span><i>→</i><span>LCD / T-CON</span><i>→</i><span>TAM thinking</span></div>
+          <button class="card-expand light" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>熟悉 EOL、RMA、BOM、GPU、PSU、ECC、SSD 等工業電腦議題。</li><li>現職延伸到 Open Cell、LCM、T-CON、PMIC、LED Driver、AG/AF/AR、PSE 等。</li><li>偏好 Program / Project / Coordinator / BA / Operations 型工作，不喜歡只剩純銷售 KPI。</li><li>你最常做的其實是：把客戶語言、供應商語言、工程語言翻成彼此能動的下一步。</li></ul></div>
+        </article>
+
+        <article class="layer-card reveal" data-category="mind" tabindex="0">
+          <div class="card-index">03</div><div class="card-icon square">?</div><p class="card-kicker">COGNITIVE STYLE</p><h3>精準＋追根究柢</h3>
+          <p>你常從一個名詞出發，最後一路追到原理層。不是愛炫技，而是如果底層模型沒接起來，你會覺得答案像懸空。</p>
+          <button class="card-expand" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>強烈在意概念邊界、用詞差異、因果是否真的成立。</li><li>會質疑權威，也會質疑自己的第一反應。</li><li>容易「窮盡式研究」：非晶矽 → TFT → 光罩；菊花鍊 → AD Board → 系統架構。</li><li>你自己也很清楚這是優點兼時間黑洞。</li></ul></div>
+        </article>
+
+        <article class="layer-card sage reveal delay-1" data-category="mind" tabindex="0">
+          <div class="card-index">04</div><p class="card-kicker">KNOWLEDGE SYSTEM</p><h3>把世界整理成系統</h3>
+          <p>清單、Notion、Obsidian、專案頁、錯誤彙整、學習筆記。你不是單純「愛做筆記」，而是靠外部結構減少腦內雜訊。</p>
+          <div class="chip-row"><span>Notion</span><span>Obsidian</span><span>Loop</span><span>Checklist</span></div>
+          <button class="card-expand" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>偏好可檢核、可分類、可回看，而不是只有漂亮頁面。</li><li>習慣把工作中的技術與語言知識做成可重用模板。</li><li>常在「數位工具很方便」與「選項太多反而耗腦」之間拉扯。</li></ul></div>
+        </article>
+
+        <article class="layer-card wide reveal" data-category="mind" tabindex="0">
+          <div class="card-index">05</div><p class="card-kicker">AI → BUILDING</p><h3>從問 AI，到開始叫 AI 幫你做東西</h3>
+          <p>從比較模型、研究 benchmark，到 Python、VS Code、GitHub Pages、Vibe Coding，再到互動行程網站與 3D 空間。你正在從「使用者」慢慢長成「可以定義系統的人」。</p>
+          <div class="progress-line" aria-hidden="true"><span style="width:78%"></span></div><div class="progress-label"><span>查詢 / 翻譯</span><span>部署 / 建構</span></div>
+          <button class="card-expand" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>先從 Colab / Python 基礎開始，接著碰 VS Code 與 GitHub。</li><li>已成功部署過 GitHub Pages，也開始理解 clone / commit / push。</li><li>會比較 Luna、Sol、Astra 的能力與限制，不只看品牌名稱。</li><li>你對 AI 的興趣逐漸從「會回答什麼」轉向「能被串成什麼工作流」。</li></ul></div>
+        </article>
+
+        <article class="layer-card cocoa reveal" data-category="life" tabindex="0">
+          <div class="card-index">06</div><p class="card-kicker">VISUAL TASTE</p><h3>低飽和，不要七彩。</h3>
+          <p>你偏好現代、乾淨、帶一點 editorial 感的版面；大留白、圓形與卡片拼貼、灰褐／軍綠／海軍藍／米色，比滿版資訊牆更像你。</p>
+          <div class="palette" aria-label="偏好色票"><span title="warm ivory"></span><span title="sage"></span><span title="navy"></span><span title="taupe"></span><span title="charcoal"></span></div>
+          <button class="card-expand light" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>不喜歡過度一致到像套版，也不喜歡所有元素都擠滿。</li><li>喜歡便條貼、圓形、模組卡片混搭，但仍要有視覺秩序。</li><li>你會直接指出「壓迫感太重」「留白不夠」「模板一致性太高」。</li></ul></div>
+        </article>
+
+        <article class="layer-card tall reveal delay-1" data-category="life" tabindex="0">
+          <div class="card-index">07</div><div class="card-icon arch">生</div><p class="card-kicker">LIFE TEXTURE</p><h3>生活不是背景，是另一套資料集</h3>
+          <p>閱讀、K-pop 舞蹈、旅行、紙本書、數位斷食、婚禮、蜜月、倉鼠，還有冰箱裡那些偶爾逼我們進行食品安全審判的東西。</p>
+          <button class="card-expand" aria-expanded="false">展開細節</button><div class="card-detail" hidden><ul><li>閱讀題材從小說延伸到腦科學、學習方法與心理學。</li><li>喜歡 K-pop 舞蹈，也在意「享受課程」勝過同儕競爭。</li><li>旅行規劃會細到交通、住宿、動線與備案，但又想保留自由度。</li><li>日常問題跨度極大：網站部署可以下一秒接發芽馬鈴薯。</li></ul></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="timeline" class="timeline-section"><div class="section-shell"><div class="section-heading reveal"><div><p class="eyebrow">2024 → 2026</p><h2>不是改變人格，是視野一直加層。</h2></div><p class="heading-note">點年份看我記得的主線。</p></div><div class="timeline-layout reveal"><div class="timeline-years" role="tablist" aria-label="時間線年份"><button class="year-btn active" data-year="2024">2024</button><button class="year-btn" data-year="2025">2025</button><button class="year-btn" data-year="2026">2026</button></div><div class="timeline-panel" id="timelinePanel" aria-live="polite"></div></div></div></section>
+
+    <section id="patterns" class="section-shell patterns-section"><div class="section-heading reveal"><div><p class="eyebrow">RECURRING PATTERNS</p><h2>我們聊天裡，最常重複的幾個模式。</h2></div></div><div class="pattern-grid"><article class="pattern-card reveal"><span class="pattern-no">A</span><h3>「大概就好」</h3><p>然後 6 分鐘後開始問底層電氣架構。</p></article><article class="pattern-card reveal delay-1"><span class="pattern-no">B</span><h3>先懷疑，再接受</h3><p>不論心理學、靈性、AI 或職場說法，你習慣先看證據與框架。</p></article><article class="pattern-card reveal delay-2"><span class="pattern-no">C</span><h3>把語言當工程</h3><p>一句商務日文也會拆解責任、語氣、暗示與風險。</p></article><article class="pattern-card reveal"><span class="pattern-no">D</span><h3>從消費 AI 到設計工作流</h3><p>你現在已經不太滿足於「答案」，開始想要部署、串接、互動。</p></article></div></section>
+
+    <section class="closing-section"><div class="section-shell closing-grid reveal"><div><p class="eyebrow">THE THREAD THAT CONNECTS IT</p><h2>你真正穩定的核心，可能不是某個 MBTI。</h2></div><div class="closing-copy"><p>而是：<strong>想把模糊的東西弄清楚，把零散的資訊接成結構，再把結構變成可以使用的東西。</strong></p><p>這條線從心理學、日文、專案管理，一直延伸到 LCD、AI、程式與設計。主題一直換，處理世界的方法其實滿一致。</p></div></div></section>
+
+    <section class="privacy-note section-shell reveal"><div class="privacy-card"><span class="privacy-mark">PUBLIC-SAFE</span><div><h3>這是公開版，不是資料外洩 cosplay。</h3><p>GitHub Pages 屬公開網頁，所以醫療／用藥、精確薪資、精確住居與通勤、家人財務等敏感資料沒有寫進原始碼。這些資訊不是「忘了」，而是刻意不公開。</p></div></div></section>
+  </main>
+
+  <footer class="site-footer section-shell"><span>JC / portrait map</span><span>Built from conversations, 2024—2026.</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
